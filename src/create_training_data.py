@@ -1,6 +1,6 @@
 import pandas as pd
+import random
 import csv
-
 
 
 def createAvgGS1Form():
@@ -72,7 +72,9 @@ def createAvgGS1Form():
                     data.append(row)
                     n_gs1_gaple_top += 1
 
-            
+
+    for i in range(10):
+        random.shuffle(data)
     data = pd.DataFrame(data=data, columns=['id', 'Name', 'Barcode', 'Manufactorer', 'Amount', 'GS1 Form', 'Food-Grade', 'Material', 'Colour'])
     print (data.groupby('GS1 Form').size())
     data.to_csv('avgDistributionGS1Form.csv', index=False)
@@ -112,6 +114,9 @@ def createAvgMaterial():
                     data.append(row)
                     n_material_metal += 1
     
+
+    for _ in range(10):
+        random.shuffle(data)
     data = pd.DataFrame(data=data, columns=['id', 'Name', 'Barcode', 'Manufactorer', 'Amount', 'GS1 Form', 'Food-Grade', 'Material', 'Colour'])
     print (data.groupby('Material').size())
     data.to_csv('avgDistributionMaterial.csv', index=False)
@@ -149,6 +154,9 @@ def createAvgColour():
                     data.append(row)
                     n_color_other += 1
     
+    for _ in range(10):
+        random.shuffle(data)
+
     data = pd.DataFrame(data=data, columns=['id', 'Name', 'Barcode', 'Manufactorer', 'Amount', 'GS1 Form', 'Food-Grade', 'Material', 'Colour'])
     print (data.groupby('Colour').size())
     data.to_csv('avgDistributionColour.csv', index=False)

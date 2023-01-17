@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-num_epochs = 75
+num_epochs = 5
 
 def load_training_data(class_to_load, folderPath):
     train_losses = np.load(folderPath + 'train_losses_' + class_to_load + '.npy')
@@ -46,11 +46,11 @@ def plot_data(train_losses, train_accuracies, valid_losses, valid_accuracies, na
 
 
 tr_l, tr_a, valid_l, valid_a = load_training_data('Material', '../Training 2/')
-plot_data(tr_l, tr_a, valid_l, valid_l, 'Material')
+plot_data(tr_l, tr_a, valid_l, valid_a, 'Material')
 
 tr_l, tr_a, valid_l, valid_a = load_training_data('GS1 Form', '../Training 2/')
-plot_data(tr_l, tr_a, valid_l, valid_l, 'GS1 Form')
+plot_data(tr_l, tr_a, valid_l, valid_a, 'GS1 Form')
 
 tr_l, tr_a, valid_l, valid_a = load_training_data('Colour', '../Training 2/')
-plot_data(tr_l, tr_a, valid_l, valid_l, 'Colour')
+plot_data(tr_l, tr_a, valid_l, valid_a, 'Colour')
 

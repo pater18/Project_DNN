@@ -117,7 +117,6 @@ def one_epoch(model, data_loader, class_to_predict, criterion, optimizer=None):
     
     train = False if optimizer is None else True
     model.train() if train else model.eval()
-    print ("Training " + class_to_predict + "...")
     td = tqdm(data_loader)
     for (images, labels) in td:
         
@@ -161,15 +160,15 @@ def load_data(class_to_load, shuffle_data=False):
     # First define the transformer to normalize the images and make them tensors
     tfms_norm = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
 
-    train_dataset = CustomImageDataset(class_to_load, train=True, data_split=data_split_percent, transform=tfms_norm, shuffle=shuffle_data)
+    train_dataset = CustomImageDataset(class_to_load, train=True, data_split=data_split_percent, transform=tfms_norm, shuffle=shuffle_data, image_size_factor=0.15)
     if shuffle_data:
         idxes = train_dataset.get_shuffled_index()
     else :
         idxes = None
-    validation_dataset = CustomImageDataset(class_to_load, train=False, data_split=data_split_percent, transform=tfms_norm, shuffle=shuffle_data, valid_indexes=idxes)
+    validation_dataset = CustomImageDataset(class_to_load, train=False, data_split=data_split_percent, transform=tfms_norm, shuffle=shuffle_data, valid_indexes=idxes, image_size_factor=0.15)
 
     print(f"Data used for varification {data_split_percent * 100} % = {len(validation_dataset)}")
-    print(f"Data used for training {100 - data_split_percent * 100} % = {len(train_dataset)} ")
+    print(f"Data used for training {100 - data_split_percent * 100} % = {len(train_dataset)}\n ")
 
     data_loader_valid = DataLoader(validation_dataset, batch_size, shuffle=True)
     data_loader_train = DataLoader(train_dataset, batch_size, shuffle=True)
@@ -201,7 +200,8 @@ def train_model(model, data_loader_train, data_loader_valid, class_to_predict):
 
 
     # Define the lossfunction 
-    criterion = nn.CrossEntropyLoss(weight=class_wights)
+    # criterion = nn.CrossEntropyLoss(weight=class_wights)
+    criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
     # optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
@@ -210,13 +210,13 @@ def train_model(model, data_loader_train, data_loader_valid, class_to_predict):
     valid_losses, valid_accuracies = [], []
     best_valid_epoch = 0
     best_valid_acc = 0
-    patience = 3
+    patience = 5
 
-
+    print ("Training " + class_to_predict + " --------------------------------------------------------------------")
     start_time = time.time()
-    t = tqdm(range(num_epocs))
-    for epoch in t:
-
+    #t = tqdm(range(num_epocs))
+    for epoch in range(num_epocs):
+        print (f"Epoch [{epoch + 1} / {num_epocs}] ...")    
         start_epoch_time = time.time()
         
         train_loss, train_acc = one_epoch(model, data_loader_train, class_to_predict, criterion, optimizer)
@@ -230,59 +230,61 @@ def train_model(model, data_loader_train, data_loader_valid, class_to_predict):
         if valid_acc > best_valid_acc:
             best_valid_acc = valid_acc
             best_valid_epoch = epoch 
+            torch.save(model.state_dict(), 'weights_' + class_to_predict + '_best.pt')
 
 
         train_acc *= 100.0
         valid_acc *= 100.0
-        text_to_print = f'\n{class_to_predict} train_acc: {train_acc:.5f}%, valid_acc: {valid_acc:.5f}% \n train_loss: {train_loss}, valid_loss: {valid_loss} ' 
-        t.set_description(text_to_print)
-        # t.set_description(f'{class_to_predict} train_acc: {train_acc:.5f}%, valid_acc: {valid_acc:.5f}%')
+        text_to_print = f'{class_to_predict} train_acc: {train_acc:.5f}%, valid_acc: {valid_acc:.5f}% \ntrain_loss: {train_loss}, valid_loss: {valid_loss}'
+        print(text_to_print) 
 
         end_epoch_time = time.time()
-        print (f"Epoch [{epoch + 1} / {num_epocs}] took {end_epoch_time-start_epoch_time} seconds")
+        print (f"Epoch number {epoch + 1} took {end_epoch_time-start_epoch_time} seconds\n")
 
-        # if best_valid_epoch + patience < epoch:
-        #     break
+        if best_valid_epoch + patience < epoch:
+            break
     
     end_time = time.time()       
     print (f"Training is finished. Took {end_time-start_time}")
+    torch.save(model.state_dict(), 'weights_' + class_to_predict + '_end.pt')
 
     return train_losses, train_accuracies, valid_losses, valid_accuracies
-
 def main():
 
-    # # First set up the model that is used and the type that is classified
-    # model_material = cnn.buildModel('Material').to(device)
-    model_gs1_form = cnn.buildModel('GS1 Form').to(device)
-    # model_colour = cnn.buildModel('Colour').to(device)    
+    # _, testdata = load_data('GS1 Form', shuffle_data=True)
 
-    print(model_gs1_form)
+    # test_tensor_size(testdata)
+
+    # # First set up the model that is used and the type that is classified
+    model_material = cnn.buildModel('Material').to(device)
+    model_gs1_form = cnn.buildModel('GS1 Form').to(device)
+    model_colour = cnn.buildModel('Colour').to(device)    
+
+    print(model_colour)
     train_losses, train_accuracies = [], []
     valid_losses, valid_accuracies = [], []
 
     # Then train the model
-    # train_losses, train_accuracies, valid_losses, valid_accuracies = train_model(model_material, *load_data('Material', shuffle_data=True), 'Material' )
-    # save_training_data(train_losses, train_accuracies, valid_losses, valid_accuracies, 'Material')
-    
+    train_losses, train_accuracies, valid_losses, valid_accuracies = train_model(model_material, *load_data('Material', shuffle_data=True), 'Material' )
+    save_training_data(train_losses, train_accuracies, valid_losses, valid_accuracies, 'Material')
 
-    # train_losses, train_accuracies = [], []
-    # valid_losses, valid_accuracies = [], []
+    train_losses, train_accuracies = [], []
+    valid_losses, valid_accuracies = [], []
     
     train_losses, train_accuracies, valid_losses, valid_accuracies = train_model(model_gs1_form, *load_data('GS1 Form', shuffle_data=True), 'GS1 Form' )
     save_training_data(train_losses, train_accuracies, valid_losses, valid_accuracies, 'GS1 Form')
-    torch.save(model_gs1_form.state_dict(), 'weights_gs1.pt')
     
 
-    # train_losses, train_accuracies = [], []
-    # valid_losses, valid_accuracies = [], []
+    train_losses, train_accuracies = [], []
+    valid_losses, valid_accuracies = [], []
 
-    # train_losses, train_accuracies, valid_losses, valid_accuracies = train_model(model_colour, *load_data('Colour', shuffle_data=True), 'Colour' )
-    # save_training_data(train_losses, train_accuracies, valid_losses, valid_accuracies, 'Colour')
+    train_losses, train_accuracies, valid_losses, valid_accuracies = train_model(model_colour, *load_data('Colour', shuffle_data=True), 'Colour' )
+    save_training_data(train_losses, train_accuracies, valid_losses, valid_accuracies, 'Colour')
     
     
-    # # Saving the weights for the model
-    # torch.save(model_material.state_dict(), 'weights_material.pt')
+    # torch.save(model_gs1_form.state_dict(), 'weights_gs1.pt')
     # torch.save(model_colour.state_dict(), 'weights_colour.pt')
+    # torch.save(model_material.state_dict(), 'weights_material.pt')
 
 
     # Plotting the training data and saving them for future reference

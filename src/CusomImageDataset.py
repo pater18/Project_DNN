@@ -42,19 +42,22 @@ class CustomImageDataset(Dataset):
         """
 
         # self.csv = pd.read_csv('https://raw.githubusercontent.com/pater18/Project_DNN/main/products.csv')
-        self.csv = pd.read_csv('avgDistributionGS1Form.csv')
+        # self.csv = pd.read_csv('avgDistributionColour.csv')
         self.img_size_factor = image_size_factor
         
         if (labels == 'GS1 Form'):
+            self.csv = pd.read_csv('avgDistributionGS1Form.csv')
             self.img_labels = self.csv.get('GS1 Form')
             self.class_map = {'bag': 0, 'can': 1, 'box' : 2, 'jar' : 3, 'sleeve': 4, 'bottle': 5, 'aerosol': 6, 
                               'brick': 7, 'bucket' : 8, 'cup-tub': 9, 'gable-top' : 10, 'tray' : 11, 'tube': 12}
 
         if (labels == 'Material'):
+            self.csv = pd.read_csv('avgDistributionMaterial.csv')
             self.img_labels = self.csv.get('Material')
             self.class_map = {'plastic': 0, 'fibre-based': 1, 'metal': 2, 'glass': 3}
 
         if (labels == 'Colour'):
+            self.csv = pd.read_csv('avgDistributionColour.csv')
             self.img_labels = self.csv.get('Colour')
             self.class_map = {'black': 0, 'clear' : 1, 'white' : 2, 'other-colours': 3}
 
@@ -87,6 +90,9 @@ class CustomImageDataset(Dataset):
                 self.data.append([str(self.img_dir[i]) + '.jpg', str(label)])
             if train is None:
                 self.data.append([str(self.img_dir[i]) + '.jpg', str(label)])
+            # Just to limit the size if the data set
+            # if i > 1000:
+            #     break
 
 
     def get_shuffled_index(self): 

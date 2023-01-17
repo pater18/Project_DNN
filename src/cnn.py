@@ -44,14 +44,18 @@ Types are : \n 'Materials', 'GS1 Form' or 'Colour'" )
     
     return nn.Sequential(
         buildLayer(3, nf),
-        buildLayer(nf, 2 * nf, stride=s, pool=pool, dropout=0.5),
-        buildLayer(2 * nf, 4 * nf, stride=s, pool=pool, dropout=0.2),
-        buildLayer(4 * nf, 8 * nf, stride=s, pool=pool, dropout=0.1),
+        buildLayer(nf, 2 * nf, stride=s, pool=pool, dropout=0.0),
+        buildLayer(2 * nf, 4 * nf, stride=s, pool=pool, dropout=0.0),
+        buildLayer(4 * nf, 8 * nf, stride=s, pool=pool, dropout=0.0),
         nn.Flatten(),
-        nn.Linear(256 * 12 * 16, 512),
-        nn.Dropout(0.4),
+        nn.Dropout(0.5),
+        nn.Linear(256 * 9 * 12, 3456), # (256*12*9)/8
         nn.ReLU(True), 
-        nn.BatchNorm1d(512), 
+        nn.BatchNorm1d(3456),
+        nn.Dropout(0.5),
+        nn.Linear(3456, 512),
+        nn.ReLU(True), 
+        nn.BatchNorm1d(512),
         nn.Linear(512, n_classes)
     )
 
